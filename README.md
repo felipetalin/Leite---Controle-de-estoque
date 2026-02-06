@@ -8,16 +8,7 @@ Projeto simples em terminal para registrar entradas/saídas de leite materno, ma
 .
 ├── leite_estoque.py
 ├── leite_estoque.csv   # criado automaticamente
-├── resumo_leite_estoque.csv  # criado ao exportar
-└── web/
-    ├── index.html
-    ├── style.css
-    ├── app.js
-    ├── manifest.webmanifest
-    ├── sw.js
-    └── icons/
-        ├── icon-192.png
-        └── icon-512.png
+└── resumo_leite_estoque.csv  # criado ao exportar
 ```
 
 ## Requisitos
@@ -36,46 +27,6 @@ python3 leite_estoque.py
 3) Use o menu para registrar entradas, saídas, ver relatório e exportar resumo.
 
 > O arquivo `leite_estoque.csv` será criado automaticamente na primeira execução.
-
-## PWA offline (versão web)
-
-A versão web fica na pasta `/web` e funciona offline após o primeiro acesso.
-
-### Rodar localmente (PWA)
-
-1) No terminal, vá para a pasta `web`:
-
-```bash
-cd web
-```
-
-2) Suba um servidor local simples:
-
-```bash
-python -m http.server 8000
-```
-
-3) Abra no navegador:
-
-```
-http://localhost:8000
-```
-
-### Publicar no GitHub Pages
-
-1) No GitHub, vá em **Settings > Pages**.
-2) Em **Build and deployment**, selecione:
-   - Source: **Deploy from a branch**
-   - Branch: **main**
-   - Folder: **/web**
-3) Salve. Após alguns minutos, a PWA estará disponível no link gerado.
-
-### Instalar no iPhone (Safari)
-
-1) Abra o link da PWA no Safari.
-2) Toque em **Compartilhar**.
-3) Selecione **Adicionar à Tela de Início**.
-4) A partir daí, a PWA funciona como app e pode abrir offline.
 
 ## Exemplos de uso
 
