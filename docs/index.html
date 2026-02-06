@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f97316" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icons/icon-192.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Leite Materno - Estoque</title>
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="app-kicker">Controle de Estoque</p>
+        <h1>Leite Materno</h1>
+      </div>
+      <div class="header-actions">
+        <button id="logoutBtn" class="btn ghost" hidden>Sair</button>
+        <button id="installBtn" class="btn ghost" hidden>Instalar</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="card hidden" id="setupSection">
+        <h2>Supabase Setup</h2>
+        <p class="muted">
+          Configure a URL do projeto e a chave publishable para habilitar login e
+          sincronização. Nunca use chaves secretas no frontend.
+        </p>
+        <form id="setupForm" class="form-grid">
+          <label class="full">
+            Supabase URL
+            <input type="url" name="url" required placeholder="https://seu-projeto.supabase.co" />
+          </label>
+          <label class="full">
+            Publishable key (sb_publishable_...)
+            <input type="text" name="key" required placeholder="sb_publishable_..." />
+          </label>
+          <button class="btn" type="submit">Salvar configuração</button>
+        </form>
+        <p id="setupMessage" class="error" role="alert" aria-live="polite"></p>
+      </section>
+
+      <section class="card" id="authSection">
+        <h2>Entrar</h2>
+        <p class="muted">Faça login para compartilhar o estoque com sua família.</p>
+        <form id="loginForm" class="form-grid">
+          <label>
+            Email
+            <input type="email" name="email" required />
+          </label>
+          <label>
+            Senha
+            <input type="password" name="password" required />
+          </label>
+          <button class="btn" type="submit">Entrar</button>
+        </form>
+        <div class="divider"></div>
+        <h3>Criar conta</h3>
+        <form id="signupForm" class="form-grid">
+          <label>
+            Email
+            <input type="email" name="email" required />
+          </label>
+          <label>
+            Senha
+            <input type="password" name="password" required />
+          </label>
+          <button class="btn ghost" type="submit">Cadastrar</button>
+        </form>
+        <p id="authMessage" class="error" role="alert" aria-live="polite"></p>
+      </section>
+
+      <section class="card hidden" id="familySection">
+        <h2>Família</h2>
+        <p class="muted">Crie uma família ou entre com um código compartilhado.</p>
+        <form id="createFamilyForm" class="form-grid">
+          <label class="full">
+            Nome da família (opcional)
+            <input type="text" name="name" placeholder="Ex: Casa da Maria" />
+          </label>
+          <button class="btn" type="submit">Criar família</button>
+        </form>
+        <div class="divider"></div>
+        <form id="joinFamilyForm" class="form-grid">
+          <label>
+            Código da família
+            <input type="text" name="code" required placeholder="Ex: AB1234" />
+          </label>
+          <button class="btn ghost" type="submit">Entrar com código</button>
+        </form>
+        <p id="familyMessage" class="error" role="alert" aria-live="polite"></p>
+        <div class="family-info" id="familyInfo"></div>
+      </section>
+
+      <section class="card hidden" id="appSection">
+        <h2>Resumo rápido</h2>
+        <div class="summary-grid">
+          <div>
+            <p class="label">Saldo total</p>
+            <p id="saldoTotal" class="value">0 ml</p>
+          </div>
+          <div>
+            <p class="label">Última movimentação</p>
+            <p id="ultimaMov" class="value">-</p>
+          </div>
+        </div>
+        <p id="syncStatus" class="muted"></p>
+      </section>
+
+      <section class="card hidden" id="entrada">
+        <h2>Registrar entrada</h2>
+        <form id="entradaForm" class="form-grid">
+          <label>
+            Data
+            <input type="date" name="data" required />
+          </label>
+          <label>
+            Volume por saco (ml)
+            <input type="number" name="volume_ml" min="1" required />
+          </label>
+          <label>
+            Quantidade de sacos
+            <input type="number" name="quantidade_sacos" min="1" value="1" required />
+          </label>
+          <label>
+            Local
+            <select name="local">
+              <option value="freezer">Freezer</option>
+              <option value="geladeira">Geladeira</option>
+            </select>
+          </label>
+          <label>
+            Data da ordenha (opcional)
+            <input type="date" name="data_ordenha" />
+          </label>
+          <label>
+            Validade (opcional)
+            <input type="date" name="validade" />
+          </label>
+          <label class="full">
+            Observação (opcional)
+            <input type="text" name="observacao" placeholder="Ex: leite noturno" />
+          </label>
+          <button class="btn" type="submit">Salvar entrada</button>
+        </form>
+      </section>
+
+      <section class="card hidden" id="saida">
+        <h2>Registrar saída</h2>
+        <form id="saidaForm" class="form-grid">
+          <label>
+            Data
+            <input type="date" name="data" required />
+          </label>
+          <label>
+            Volume por saco (ml)
+            <input type="number" name="volume_ml" min="1" required />
+          </label>
+          <label>
+            Quantidade de sacos
+            <input type="number" name="quantidade_sacos" min="1" value="1" required />
+          </label>
+          <label class="full">
+            Motivo/observação
+            <input type="text" name="observacao" required placeholder="Ex: consumo do bebê" />
+          </label>
+          <button class="btn warning" type="submit">Registrar saída</button>
+        </form>
+        <p id="saidaErro" class="error" role="alert" aria-live="polite"></p>
+      </section>
+
+      <section class="card hidden" id="relatorio">
+        <h2>Relatório</h2>
+        <div class="table" id="saldoPorVolume"></div>
+        <h3>FIFO / usar primeiro</h3>
+        <div class="table" id="fifoLista"></div>
+        <h3>Movimentações recentes</h3>
+        <div class="table" id="historico"></div>
+      </section>
+
+      <section class="card hidden" id="backup">
+        <h2>Backup</h2>
+        <div class="backup-actions">
+          <button class="btn ghost" id="exportBtn">Exportar JSON</button>
+          <label class="btn ghost">
+            Importar JSON
+            <input type="file" id="importInput" accept="application/json" hidden />
+          </label>
+        </div>
+        <p class="muted">
+          Dica: salve o arquivo exportado no seu iCloud/Google Drive para restaurar depois.
+        </p>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p>Funciona offline após o primeiro acesso.</p>
+    </footer>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
