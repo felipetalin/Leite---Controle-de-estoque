@@ -9,7 +9,7 @@ Projeto simples em terminal para registrar entradas/saídas de leite materno, ma
 ├── leite_estoque.py
 ├── leite_estoque.csv   # criado automaticamente
 ├── resumo_leite_estoque.csv  # criado ao exportar
-└── web/
+└── docs/
     ├── index.html
     ├── style.css
     ├── app.js
@@ -41,28 +41,28 @@ python3 leite_estoque.py
 
 ## PWA offline (versão web)
 
-A versão web fica na pasta `/web` e funciona offline após o primeiro acesso.
+A versão web fica na pasta `/docs` e funciona offline após o primeiro acesso.
 
 ### Configurar Supabase (login + família)
 
 1) Crie um projeto no Supabase (https://supabase.com).
 2) Em **Project Settings > API**, copie a **Project URL** e a **anon key**.
-3) Crie o arquivo `web/config.js` (use o exemplo abaixo):
+3) Crie o arquivo `docs/config.js` (use o exemplo abaixo):
 
 ```js
 export const SUPABASE_URL = "https://seu-projeto.supabase.co";
 export const SUPABASE_ANON_KEY = "sua-chave-anon";
 ```
 
-> O arquivo `web/config.js` está no `.gitignore` para não subir a chave.
+> O arquivo `docs/config.js` está no `.gitignore` para não subir a chave.
 
 4) No Supabase, abra o **SQL Editor** e rode o script em `supabase/schema.sql`.
 ### Rodar localmente (PWA)
 
-1) No terminal, vá para a pasta `web`:
+1) No terminal, vá para a pasta `docs`:
 
 ```bash
-cd web
+cd docs
 ```
 
 2) Suba um servidor local simples:
@@ -83,7 +83,7 @@ http://localhost:8000
 2) Em **Build and deployment**, selecione:
    - Source: **Deploy from a branch**
    - Branch: **main**
-   - Folder: **/web**
+   - Folder: **/docs**
 3) Salve. Após alguns minutos, a PWA estará disponível no link gerado.
 
 ### Instalar no iPhone (Safari)
