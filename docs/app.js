@@ -1,10 +1,13 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
 
 const STORAGE_KEY = "leite_estoque_pwa";
 const PENDING_KEY = "leite_estoque_pending";
 const FAMILY_KEY = "leite_estoque_family";
+const CONFIG_KEY = "leite_estoque_supabase_config";
 
+const setupSection = document.getElementById("setupSection");
+const setupForm = document.getElementById("setupForm");
+const setupMessage = document.getElementById("setupMessage");
 const authSection = document.getElementById("authSection");
 const familySection = document.getElementById("familySection");
 const appSection = document.getElementById("appSection");
@@ -40,7 +43,8 @@ const today = new Date().toISOString().slice(0, 10);
 entradaForm.data.value = today;
 saidaForm.data.value = today;
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let supabase = null;
+let supabaseConfig = loadConfig();
 
 let state = {
   user: null,
@@ -71,10 +75,12 @@ function showSection(section, show) {
 }
 
 function updateView() {
+  const hasConfig = Boolean(supabaseConfig?.url && supabaseConfig?.key);
   const hasUser = Boolean(state.user);
   const hasFamily = Boolean(state.familyId);
 
-  showSection(authSection, !hasUser);
+  showSection(setupSection, !hasConfig);
+  showSection(authSection, hasConfig && !hasUser);
   showSection(familySection, hasUser && !hasFamily);
   showSection(appSection, hasUser && hasFamily);
   showSection(entradaSection, hasUser && hasFamily);
@@ -88,6 +94,30 @@ function updateView() {
 function setMessage(el, message = "", isError = true) {
   el.textContent = message;
   el.style.color = isError ? "var(--warning)" : "var(--primary)";
+}
+
+function loadConfig() {
+  const raw = localStorage.getItem(CONFIG_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    console.error("Erro ao ler configuração", error);
+    return null;
+  }
+}
+
+function saveConfig(config) {
+  localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+  supabaseConfig = config;
+}
+
+function initSupabase() {
+  if (!supabaseConfig?.url || !supabaseConfig?.key) {
+    return null;
+  }
+  supabase = createClient(supabaseConfig.url, supabaseConfig.key);
+  return supabase;
 }
 
 function loadPending() {
@@ -241,6 +271,7 @@ function generateFamilyCode() {
 }
 
 async function handleSession() {
+  if (!supabase) return;
   const { data } = await supabase.auth.getSession();
   state.user = data.session?.user ?? null;
   updateView();
@@ -250,6 +281,7 @@ async function handleSession() {
 }
 
 async function loadFamily() {
+  if (!supabase) return;
   const storedFamily = localStorage.getItem(FAMILY_KEY);
   if (storedFamily) {
     try {
@@ -292,6 +324,7 @@ async function loadFamily() {
 }
 
 async function createFamily(name) {
+  if (!supabase) return;
   familyMessage.textContent = "";
   const code = generateFamilyCode();
   const { data, error } = await supabase
@@ -328,6 +361,7 @@ async function createFamily(name) {
 }
 
 async function joinFamily(code) {
+  if (!supabase) return;
   familyMessage.textContent = "";
   const { data, error } = await supabase.rpc("join_family_by_code", { p_code: code });
   if (error) {
@@ -347,6 +381,7 @@ async function joinFamily(code) {
 }
 
 async function loadMovimentos() {
+  if (!supabase) return;
   if (!state.familyId) return;
   const cached = loadCachedMovimentos();
   if (cached.length) {
@@ -382,6 +417,7 @@ function addToPending(movimento) {
 }
 
 async function flushPending() {
+  if (!supabase) return;
   if (!navigator.onLine || !state.pending.length || !state.familyId) {
     updateSyncStatus();
     return;
@@ -421,6 +457,7 @@ function buildMovimento(formData, tipo) {
 }
 
 async function inserirMovimento(movimento) {
+  if (!supabase) return;
   if (!navigator.onLine) {
     addToPending(movimento);
     return;
@@ -438,6 +475,10 @@ async function inserirMovimento(movimento) {
 loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   authMessage.textContent = "";
+  if (!supabase) {
+    setMessage(authMessage, "Configure o Supabase antes de entrar.");
+    return;
+  }
   const formData = new FormData(loginForm);
   const { error } = await supabase.auth.signInWithPassword({
     email: formData.get("email"),
@@ -451,6 +492,10 @@ loginForm.addEventListener("submit", async (event) => {
 signupForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   authMessage.textContent = "";
+  if (!supabase) {
+    setMessage(authMessage, "Configure o Supabase antes de cadastrar.");
+    return;
+  }
   const formData = new FormData(signupForm);
   const { error } = await supabase.auth.signUp({
     email: formData.get("email"),
@@ -464,6 +509,7 @@ signupForm.addEventListener("submit", async (event) => {
 });
 
 logoutBtn.addEventListener("click", async () => {
+  if (!supabase) return;
   await supabase.auth.signOut();
   state = {
     user: null,
@@ -479,17 +525,20 @@ logoutBtn.addEventListener("click", async () => {
 createFamilyForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(createFamilyForm);
+  if (!supabase) return;
   await createFamily(formData.get("name"));
 });
 
 joinFamilyForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(joinFamilyForm);
+  if (!supabase) return;
   await joinFamily(formData.get("code").toUpperCase().trim());
 });
 
 entradaForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (!supabase) return;
   const formData = new FormData(entradaForm);
   const movimento = buildMovimento(formData, "entrada");
   await inserirMovimento(movimento);
@@ -499,6 +548,7 @@ entradaForm.addEventListener("submit", async (event) => {
 
 saidaForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (!supabase) return;
   saidaErroEl.textContent = "";
   const formData = new FormData(saidaForm);
   const movimento = buildMovimento(formData, "saida");
@@ -553,22 +603,47 @@ importInput.addEventListener("change", (event) => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js");
+    navigator.serviceWorker.register("./sw.js");
   });
 }
 
 window.addEventListener("online", () => {
-  flushPending();
-  loadMovimentos();
-});
-
-supabase.auth.onAuthStateChange((_event, session) => {
-  state.user = session?.user ?? null;
-  updateView();
-  if (state.user) {
-    loadFamily();
+  if (supabase) {
+    flushPending();
+    loadMovimentos();
   }
 });
 
-handleSession();
+function bindAuthListener() {
+  if (!supabase) return;
+  supabase.auth.onAuthStateChange((_event, session) => {
+    state.user = session?.user ?? null;
+    updateView();
+    if (state.user) {
+      loadFamily();
+    }
+  });
+}
+
+setupForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const formData = new FormData(setupForm);
+  const url = formData.get("url").trim();
+  const key = formData.get("key").trim();
+  if (!key.startsWith("sb_publishable_")) {
+    setMessage(setupMessage, "Use apenas a chave publishable (sb_publishable_...).");
+    return;
+  }
+  saveConfig({ url, key });
+  initSupabase();
+  bindAuthListener();
+  setMessage(setupMessage, "Configuração salva! Faça login.", false);
+  updateView();
+});
+
+if (supabaseConfig) {
+  initSupabase();
+  bindAuthListener();
+  handleSession();
+}
 updateView();

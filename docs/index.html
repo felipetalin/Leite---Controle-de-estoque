@@ -22,6 +22,26 @@
     </header>
 
     <main>
+      <section class="card hidden" id="setupSection">
+        <h2>Supabase Setup</h2>
+        <p class="muted">
+          Configure a URL do projeto e a chave publishable para habilitar login e
+          sincronização. Nunca use chaves secretas no frontend.
+        </p>
+        <form id="setupForm" class="form-grid">
+          <label class="full">
+            Supabase URL
+            <input type="url" name="url" required placeholder="https://seu-projeto.supabase.co" />
+          </label>
+          <label class="full">
+            Publishable key (sb_publishable_...)
+            <input type="text" name="key" required placeholder="sb_publishable_..." />
+          </label>
+          <button class="btn" type="submit">Salvar configuração</button>
+        </form>
+        <p id="setupMessage" class="error" role="alert" aria-live="polite"></p>
+      </section>
+
       <section class="card" id="authSection">
         <h2>Entrar</h2>
         <p class="muted">Faça login para compartilhar o estoque com sua família.</p>

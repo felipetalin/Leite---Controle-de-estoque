@@ -47,14 +47,16 @@ A versão web fica na pasta `/docs` e funciona offline após o primeiro acesso.
 
 1) Crie um projeto no Supabase (https://supabase.com).
 2) Em **Project Settings > API**, copie a **Project URL** e a **anon key**.
-3) Crie o arquivo `docs/config.js` (use o exemplo abaixo):
+3) No primeiro acesso, a tela **Supabase Setup** pede a URL e a chave publishable. Ela fica salva no LocalStorage do navegador.
+
+> Se quiser, você pode ver o exemplo em `docs/config.example.js`, mas não é necessário criar `docs/config.js`.
 
 ```js
 export const SUPABASE_URL = "https://seu-projeto.supabase.co";
 export const SUPABASE_ANON_KEY = "sua-chave-anon";
 ```
 
-> O arquivo `docs/config.js` está no `.gitignore` para não subir a chave.
+> **Nunca use/commite chaves secretas ou service_role** no frontend. Use apenas a publishable (`sb_publishable_...`).
 
 4) No Supabase, abra o **SQL Editor** e rode o script em `supabase/schema.sql`.
 ### Rodar localmente (PWA)
